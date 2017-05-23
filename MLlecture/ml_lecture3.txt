@@ -1,0 +1,31 @@
+% sml
+Standard ML of New Jersey v110.80 [built: Fri Aug 19 07:49:58 2016]
+- (* using an infix operator as a function *)
+- (op +)(3,4) ;
+val it = 7 : int
+- (* declaring a parameter to a function as an infix symbol *)
+- fun f (op <) x y = x < y ;
+val f = fn : ('a * 'b -> 'c) -> 'a -> 'b -> 'c
+- f (op +) 4 5 ;
+val it = 9 : int
+- f (fn (a,b) => a::b) 4 [5,6,7] ;
+val it = [4,5,6,7] : int list
+- (* Defining your own infix operators *)
+- infix =*= ;
+infix =*=
+- (* Defining the behavior of =*= *)
+- fun x =*= y = (x*2)+y ;
+val =*= = fn : int * int -> int
+- 3 =*= 4 ;
+val it = 10 : int
+- (* Using =*= with function syntax *)
+- (op =*=)(3,4) ;
+val it = 10 : int
+- (* Passing =*= as a parameter *)
+- f (op =*=) 3 4 ;
+val it = 10 : int
+- infix ++ ;
+infix ++
+- fun a ++ b = a + b ;
+val ++ = fn : int * int -> int
+- fun (op ++)(a,b) = a + b ;

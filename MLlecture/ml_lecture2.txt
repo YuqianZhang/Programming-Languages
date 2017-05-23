@@ -1,0 +1,251 @@
+~/Desktop (501\)% sml
+Standard ML of New Jersey v110.80 [built: Fri Aug 19 07:49:58 2016]
+- val n = 15 ;   (* Variable declaration *)
+val n = 15 : int
+- fun f x = if x = 0 then 1 else x * f (x-1) ;  (* Function  declaration *)
+val f = fn : int -> int
+
+
+- (* ML functions are CURRIED:  No matter how many parameters are
+=    declared, a function can be applied to a single argument, 
+=    returning a function that takes the next argument, and so
+=    on *)
+- fun g x y = x + y  (* g takes a parameter x and returns a 
+=                       function that takes a parameter y and
+=                       evaluates x + y *)
+= ;
+val g = fn : int -> int -> int
+- g 3 4;  (* both parameters at once *)
+val it = 7 : int
+- g 3  ; (* returns a function taking the next parameter *)
+val it = fn : int -> int
+- val h = g 3 ;  (* defining h to be the result of g 3 makes h a function *)
+val h = fn : int -> int
+- h 4 ;
+val it = 7 : int
+- fun g x y z = x * (y+z) ;  
+val g = fn : int -> int -> int -> int
+
+
+- (* defining functions using PATTERN MATCHING *)
+- fun fac 0 = 1
+=  |  fac n = n * fac (n-1) ;
+val fac = fn : int -> int
+
+
+- (* Going back to lists:  cons is written ::
+=                          append is written @ *)
+- 3 :: [4,56] ;
+val it = [3,4,56] : int list
+- 3.2 :: [4,5,6];  (* this won't work since lists are homogeneous *)
+stdIn:23.1-23.15 Error: operator and operand don't agree [overload conflict]
+  operator domain: real * real list
+  operand:         real * [int ty] list
+  in expression:
+    3.2 :: 4 :: 5 :: 6 :: nil
+
+
+- [1,2,3] @ [4,5,6] ;  (* using the append operator, @ *)
+val it = [1,2,3,4,5,6] : int list
+- (* Of course, cons and append are purely functional - they don't change their arguments *)
+- val l1 = [1,2,3] ;
+val l1 = [1,2,3] : int list
+- val l2 = [4,5,6];
+val l2 = [4,5,6] : int list
+- l1 @ l2 ;
+val it = [1,2,3,4,5,6] : int list
+- l1 
+= ;
+val it = [1,2,3] : int list
+- l2 ;
+val it = [4,5,6] : int list
+
+
+- (* :: (cons) can be used as a pattern in a function definition *)
+- fun f [] = 0
+=  |  f (x::xs) = x + f xs ;  (* computes the sum of the elements of an int list *)
+val f = fn : int list -> int
+- f [3,4,5,6] ;
+val it = 18 : int
+- fun length [] = 0  (* what is the type of length?. Note that it can take a list *)
+=  |  length (y::rest) = 1 + length rest ;  (* of any type. That is, for all types 'a ("alpha"),
+                                               length is of type 'a list -> int. Any
+					       function with a type variable, e.g. 'a, in
+					       its type is POLYMORPHIC *)
+val length = fn : 'a list -> int
+- length [1,2,3];
+val it = 3 : int
+- length ["hello", "goodbye"];
+val it = 2 : int
+- length [[1,2],[3,4]] ;
+val it = 2 : int
+- (* What is the type of this function? *)
+- fun g (x::xs) = x ;  
+stdIn:40.5-40.18 Warning: match nonexhaustive
+          x :: xs => ...
+  
+val g = fn : 'a list -> 'a
+
+
+- (* ML has higher order functions *)
+- fun h f x = f (x+1) * 2 ;
+val h = fn : (int -> int) -> int -> int
+- fun h f x = f x * 2  ;   (* h is polymorphic *)
+val h = fn : ('a -> int) -> 'a -> int
+
+
+- (* defining map. Note that it is polymorphic *)
+- fun map f [] = []
+=  |  map f (z::zs) = f z :: map f zs  ;
+val map = fn : ('a -> 'b) -> 'a list -> 'b list
+
+- (* What is the type of the compose function? *)
+- fun compose f g x = f (g x)  ;
+val compose = fn : ('a -> 'b) -> ('c -> 'a) -> 'c -> 'b
+
+
+- (* LAMBDA expressions are written: fn <param> => <body> *)
+- fn x => x + 1  ;
+val it = fn : int -> int
+- (fn x => x + 1) 7 ;
+val it = 8 : int
+- fun f x = fn y => x + y  ;
+val f = fn : int -> int -> int
+- f 5 7 ;
+val it = 12 : int
+
+
+- (* tuples can be used in patterns *)
+- val x = (3, "hello") ;
+val x = (3,"hello") : int * string
+- fun foo (y,z) = if y = 3 then z else "no"  ;
+val foo = fn : int * string -> string
+- foo x ;
+val it = "hello" : string
+
+- [] ; (* Not a function, but is polymorphic! *)
+val it = [] : 'a list
+
+- fun f x = x ;  (* The identity function is the only terminating function
+                    of type 'a -> 'a *)
+val f = fn : 'a -> 'a
+- fun g x = if true then g x else x ; (* Here's a non-terminating function of type 'a -> 'a *)
+val g = fn : 'a -> 'a
+
+- (* sometimes, you need to declare the types of parameters. For example, you might
+     need to specify the parameter is a real rather than an int *)
+- fun f (x:real) y = x + y ;
+val f = fn : real -> real -> real
+
+- (* patterns can be used in variable definitions, allowing for simultanenous
+     variable definitions *)
+- val (x,y) = (4, 3.5)  ;
+val x = 4 : int
+val y = 3.5 : real
+- val (x::xs) = [1,2,3,4]  ;
+val x = 1 : int
+val xs = [2,3,4] : int list
+
+- (* defining nested variables and functions using a let *)
+- fun g x =
+=   let val y = x * 2
+=       fun h z = z * y
+=   in h x 
+=   end  ;
+val g = fn : int -> int
+
+
+- (* for mutually recursive functions, use "and" *)
+- fun f x = if x = 0 then 1 else x * g (x-1)
+= and 
+=     g 0 = 1
+=  |  g n = n * f (n-1)
+= ;
+val f = fn : int -> int
+val g = fn : int -> int
+
+
+- (* the boolean operators are "andalso" and "orelse" *)
+- true andalso false ;
+val it = false : bool
+- true orelse false ;
+val it = true : bool
+
+
+- (* defining a new type using "datatype", enumerating all the
+     elements of the new type *)
+- datatype stoplight = red | green | yellow   ;
+datatype stoplight = green | red | yellow
+- red ;
+val it = red : stoplight
+
+- (* these values can be used as patterns *)
+- fun drive red = "stop"
+=  |  drive green = "go"
+=  |  drive yellow = "go faster"  ;
+val drive = fn : stoplight -> string
+
+
+- (* associating values with each alternative in a datatype declaration *)
+- datatype vehicle = car of int | truck of bool | boat of int list  ;
+datatype vehicle = boat of int list | car of int | truck of bool
+- (* car needs to take an integer value as a parameter *)
+- car 6 ;
+val it = car 6 : vehicle
+- truck true; (* truck needs a boolean value *)
+val it = truck true : vehicle
+- boat [1,2,3]; (* boat needs an int list *)
+val it = boat [1,2,3] : vehicle
+- (* can also use these in patterns to define functions *)
+- fun silly (car x) = x*2
+=  |  silly (truck y) = if y then 3 else 4
+=  |  silly (boat z) = length z ;
+val silly = fn : vehicle -> int
+- silly (car 7) ;
+val it = 14 : int
+- silly (boat [1,2,3,4]) ;
+val it = 4 : int
+
+
+- (* datatypes can be recursive! That is, the type you're
+     defining can appear on the right hand side of the
+     definition. *)
+- datatype tree = leaf of int | node of tree * tree  ;
+datatype tree = leaf of int | node of tree * tree
+
+- (* Constructing a tree *)
+- val mytree = node (node (leaf 3, leaf 4), leaf 5) ;
+val mytree = node (node (leaf 3,leaf 4),leaf 5) : tree
+
+
+- (* fringe returns a list of the labels associated with the leaves
+=    of a tree *)
+- fun fringe (leaf x) = [x]
+=  |  fringe (node (left,right)) = fringe left @ fringe right  ;
+val fringe = fn : tree -> int list
+- fringe mytree ;
+val it = [3,4,5] : int list
+
+
+- (* datatypes can be polymorphic *)
+- datatype 'a tree = leaf of 'a | node of 'a tree * 'a tree ;
+datatype 'a tree = leaf of 'a | node of 'a tree * 'a tree
+- leaf 5 ;
+val it = leaf 5 : int tree
+- leaf ["hello"] ;
+val it = leaf ["hello"] : string list tree
+
+- (* Use the same definition of fringe as above. Now it's polymorphic! *)
+- fun fringe (leaf x) = [x]
+=  |  fringe (node (left,right)) = fringe left @ fringe right  ;
+val fringe = fn : 'a tree -> 'a list
+
+
+- (* using infix operators as functions *)
+- (op +)(3,4) ;
+val it = 7 : int
+- fun f g = g(3,4) ;
+val f = fn : (int * int -> 'a) -> 'a
+- f (op +) ;
+val it = 7 : int
+

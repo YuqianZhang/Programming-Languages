@@ -1,0 +1,38 @@
+% sml
+Standard ML of New Jersey v110.80 [built: Fri Aug 19 07:49:58 2016]
+- (* This is a comment *)
+- 
+- (* Basic types: int, real, string *)
+- 5 ;
+val it = 5 : int
+- 5.9 ;
+val it = 5.9 : real
+- "hello" ;
+val it = "hello" : string
+
+- (* Aggregate types: list, tuple *)
+- [1,2,3] ;   (* IMPORTANT: The ";" is not part of the language
+val it = [1,2,3] : int list
+- [[3.4,6.7],[8.9]]  ;
+val it = [[3.4,6.7],[8.9]] : real list list
+
+- (* Lists are homogeneous: all the elements must be of the same type *)
+- [1,2,3.4, "goodbye"] ; (* trying to create a non-homogeneous list *)
+stdIn:11.1-11.21 Error: operator and operand don't agree [tycon mismatch]
+  operator domain: real * real list
+  operand:         real * string list
+  in expression:
+    3.4 :: "goodbye" :: nil
+
+- (* A tuple is like a record, where the fields are accessed by position *)
+- (3, "one", 2.4) ;
+val it = (3,"one",2.4) : int * string * real
+
+- (* Defining variables *)
+- val x = 3 * 6 ;
+val x = 18 : int
+
+- (* Defining functions *)
+- fun f x y = x + y ;   (* No parentheses around parameters *)
+val f = fn : int -> int -> int
+
