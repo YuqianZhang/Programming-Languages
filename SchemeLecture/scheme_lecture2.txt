@@ -1,0 +1,285 @@
+
+> ;;; accessing elements of a list
+(car '(1 2 3 4))
+1
+> (car (cdr '(1 2 3 4)))
+2
+> ;;; Shortcuts:  (c...r) where ... is a series of a's and/or d's.
+  ;;; For example:  (cadr L) - second element of L
+  ;;;               (caddr L) - third element of L
+  ;;;               (cadar L) - second element of first element of L
+  
+
+(cadr '(1 2 3 4))  ;; gives the second element
+2
+> ;;; third element of a list
+(car (cdr (cdr '(1 2 3 4))))
+3
+> (caddr '(1 2 3 4 5))
+3
+> (cadar '((1 2 3 4) (5 6 7) (8 9 10)))  ;; what does this return?
+2
+
+
+> ;;; LET introduces a new scope and defines variables in that scope.
+
+(define (f x)
+  (let ((y (+ x 1)) (z (* x 2)))
+    (+ y z)))
+> (f 4)
+13
+> y  ;;; out of the scope of y
+y: undefined;
+ cannot reference undefined identifier
+  context...:
+   /Applications/Racket v6.6/collects/racket/private/misc.rkt:88:7
+   /Applications/Racket v6.6/share/pkgs/r5rs-lib/r5rs/run.rkt: [running body]
+>
+
+
+  ;;; because the new variables introduced by a LET are only
+  ;;; visible in the BODY of the let, a new variable cannot be
+  ;;; used in the definition of a subsequent new variable
+
+(let ((x 3) (y (+ x 1)))   ;;; can't use x in the definition of y.
+  (+ x y))
+x: undefined;
+ cannot reference undefined identifier
+  context...:
+   /Applications/Racket v6.6/collects/racket/private/misc.rkt:88:7
+   /Applications/Racket v6.6/share/pkgs/r5rs-lib/r5rs/run.rkt: [running body]
+
+
+;;; a variable definition in a let can refer to outer variables
+> (define x 100)        ;;; defining an outer (global) x
+> (let ((x 10) (y (* x 2)))   ;;; here, (* x 2) refers to the outer x
+    (+ x y))     ;;; the x in (+ x y) is the new x
+210
+> 
+
+
+> ;;; if you wanted a new variable to be used in the definition of
+  ;;; another new variable, you could nest LET's.
+
+(let ((x 3))
+  (let ((y (+ x 1)))
+    (+ x y)))
+7
+
+> ;;; Or, you can use LET*, which has the same effect as nesting a
+  ;;; series of LET's.
+
+(let* ((x 3) (y (+ x 1)) (z (* y 2)))  ;;; the definition of y can use x, and the 
+  (+ x y z))                           ;;; definition of z can use y.
+15
+
+
+;;; Functions are "first class" objects, meaning they can be treated
+;;; as values:  passed as parameters, returned as the results of 
+;;; of function calls, placed into lists, etc.
+
+;;; A simple "higher order" function, i.e. a function that operates
+;;; over functions.
+
+(define (foo f x)       ;;; takes a function f and a number x as a parameter and
+  (f (* x 2)))          ;;; calls f on (* x y)
+
+
+> (define (g y) (+ y 15))    ;;; here is a function we can pass in to foo
+> 
+(foo g 10)
+35
+
+
+> ;;; Built-in function:  (MAP f L) applies f to every element of 
+  ;;; the list L, returns a list of the results.
+
+(map g '(20 30 40 50))    ;;; so, g is called on 20, 30, 40, and 50 and a list of the results
+                          ;;; is returned.
+(35 45 55 65)             
+> (map car '((1 2 3) (a b c) ("hello" "goodbye")))   ;;; calling CAR on each element of the list.
+(1 a "hello")
+> 
+
+;;; Writing our own version of MAP. 
+;;; Recursive thinking for (map f L)
+;;; Base Case:  L is empty, return '()
+;;; Assumption: (map f (cdr L)) returns a list of the results of
+;;;             applying f to every element of (cdr L).
+;;; Step:  Put the result of (f (car L)) on the front of the
+;;         result of (map f (cdr L))
+
+(define (myMap f L)
+ (cond ((null? L) '())
+       (else (cons (f (car L)) (myMap f (cdr L))))))
+> (myMap g '(2 3 4 5 6))
+(17 18 19 20 21)
+
+> 
+
+;;; Adding one to every element of a list by defining an increment function
+;;; and passing it to map.
+
+(define (increment x) (+ x 1))
+
+> (map increment '(1 2 3 4))
+(2 3 4 5)
+
+> ;;; Adding two to every element of a list, by defining an incrementby2 function
+  ;;; and passing it to map.
+(define (incrementby2 x) (+ x 2))
+
+> (map incrementby2 '(1 2 3 4))
+(3 4 5 6)
+
+> ;;; Instead of having to define named functions to achieve the
+  ;;; above results, you can define *anonymous* functions to do
+  ;;; it, using LAMBDA.
+
+;;; (lambda (arg1 ... argN) body)   evaluates to a function that
+;;; takes arg1 ... argN as parameters and executes body. That function
+;;; has no name.
+
+(lambda (x y) (+ x y))  ;;; this is a function that adds its two params.
+#<procedure>
+> 
+;; using MAP with a lambda expression:
+
+(map (lambda (x) (* x 2)) '(1 2 3 4 5))  ;;; multiply each element of the list by 2.
+(2 4 6 8 10)
+
+> ;;; NOTE THAT SAYING "(define (f x y) (+ x y))" is just 
+  ;;; shorthand for (define f (lambda (x y) (+ x y)))
+
+;;; Lambda can be used to create a function in a nested scope, and
+;;; return the function out of that scope.
+
+(define (f x)
+  (lambda (y) (+ x y)))
+> (f 3)
+#<procedure>
+
+> (define g (f 3))   ;;; setting g to the result of calling (f 3), so g is a function.
+
+> (g 5)     ;;; calling g, i.e. calling the function defined by (lambda (y) (+ x y)) where
+            ;;; x was 3.
+8
+
+
+> x   ;;; the global x is still 100.  It has no relationship to the x inside the above lambda.
+100
+
+
+> ;;; putting functions into a list
+
+(list (lambda (x) (+ x 1)) (lambda (x) (+ x 2)) (lambda (x) (+ x 3)))
+(#<procedure> #<procedure> #<procedure>)
+
+> ;;; defining L as a list of functions.
+  (define L (list (lambda (x) (+ x 1)) (lambda (x) (+ x 2)) (lambda (x) (+ x 3))))
+> L
+(#<procedure> #<procedure> #<procedure>)
+
+
+> ;;; calling elements of L
+((car L) 3)   ;;; applying the first function in L to 3
+4
+> ((caddr L) 3)  ;;; applying the second function in L to 3
+6
+
+
+> ;;; defining recursive functions within an inner scope: LET wont work.
+  ;;; In a LET, the scope of a new variable is only within the body of the
+  ;;; LET. Since a recursive function has to refer to its own name, a LET can't
+  ;;; be used (since that name isn't visible).
+
+(let ((f (lambda (x) (if (= x 0) 1 (* x (f (- x 1)))))))
+  (f 5))
+*: contract violation
+  expected: number?
+  given: #<procedure>
+  argument position: 2nd
+  other arguments...:
+   5
+  context...:
+   /Applications/Racket v6.6/collects/racket/private/misc.rkt:88:7
+   /Applications/Racket v6.6/share/pkgs/r5rs-lib/r5rs/run.rkt: [running body]
+
+
+> ;;; Need a special version of LET that allows for recursive
+  ;;; definitions:  LETREC
+
+(letrec ((f (lambda (x) (if (= x 0) 1 (* x (f (- x 1)))))))
+  (f 5))
+120
+
+> ;;; LETREC can be used to define mutually recursive functions
+
+(letrec ((f (lambda (x) (if (= x 0) 1 (* x (g (- x 1))))))
+         (g (lambda (x) (if (= x 0) 1 (* x (f (- x 1)))))))
+  (g 6))
+720
+
+;;;; -------------------------- YUCKY (NON-FUNCTIONAL STUFF) BELOW
+
+;;; I've been lying to you, Scheme is not purely functional.  However,
+;;; in your assignments and on the exam, you have to treat it 
+;;; as if it were.
+
+;;; Here are some non-functional parts Scheme (please ignore!)
+
+>  x   ;;; existing global variable x
+100
+> (set! x (+ x 1))   ;;; overwrites x
+> x
+101
+
+
+> (define (create-counter)    ;;; returns a function (lambda) that increments 
+    (let ((x 0))              ;;; this INNER x every time that function is called.
+      (lambda () (set! x (+ x 1)) x)))
+
+> (define counter (create-counter))   ;;; define counter to be the function returned
+                                      ;;; by (create-counter).
+> counter
+#<procedure>
+
+
+> (counter)     ;;; initially, x is 0 (see inside create-counter, above, so calling
+                ;;; (counter) increments that x and returns it.
+1
+> (counter)     ;;; increments that inner x again.
+2
+> (counter)
+3
+
+> x   ;;; the global x (unrelated to the x inside create-counter) is still 101.
+101
+
+
+> ;;; (set-car! L x)  overwrites the (car L) with x
+
+(define L '(1 2 3 4))
+
+> (set-car! L 100)    ;;; overwrites the first element of L with 100
+
+> L
+(100 2 3 4)
+
+> ;;; (set-cdr! L x)  overwrites the (cdr L) with x
+L
+(100 2 3 4)
+
+> (set-cdr! L '(101 102 103)) ;;; overwrites the (cdr L) with '(101 102 103)
+> L
+(100 101 102 103)
+
+
+> (set-cdr! L L)   ;;; this creates a cycle, since the (cdr L) now points back to
+                   ;;; L itself.
+
+> L                ;;; interpreter is smart enough not to try to print all the elements
+                   ;;; of L (until the end of the list is reached), which
+                   ;;; would be an infinite recursion.
+#0=(100 . #0#)
+

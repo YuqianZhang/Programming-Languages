@@ -1,0 +1,283 @@
+Welcome to Racket v6.6.
+R5RS legacy support loaded
+> ;;; comments start with semicolons
+
+;;; BASIC TYPES
+
+12   ;; Numbers (integers and floating point)
+12
+> 13.456
+13.456
+> ;;; Another basic type is symbol.  The only characteristic of
+  ;;; a symbol is its name.
+'hello
+hello
+> ;; You also have strings
+"hello world"
+"hello world"
+
+> ;;; The primary AGGREGATE TYPE is the list.
+;;;  Not all the elements of a list have to be the same type
+
+'(34 45.6 tom sally "hello")
+(34 45.6 tom sally "hello")
+
+> ;;; Lists can be nested
+'(one (2 3 (4 five 6) 7) eight)
+(one (2 3 (4 five 6) 7) eight)
+> 
+
+;;;; Expressions: two types - atomic expressions, combinations
+
+;;; atomic expressions  (not composed of any other expressions)
+;; -- numeric literals:  34 67.9
+;; -- symbol literals:  red green blue
+;; -- boolean literals:  #t #f
+;; -- the empty list:  ()
+;; -- variable names: x y z
+
+
+;;; Combinations:  all start and end with parentheses -  (...)
+
+;;; defining variables
+
+(define x 6)   ;; declares a variable x whose value is 6
+
+> x
+6
+> 'hello   ;;; quote tells the interpreter to treat the word as a symbol, not a variable
+hello
+> hello   ;;; without the quote, interpreter will attempt to retrieve the value of the variable.
+hello: undefined;
+ cannot reference undefined identifier
+  context...:
+   /Applications/Racket v6.6/collects/racket/private/misc.rkt:88:7
+   /Applications/Racket v6.6/share/pkgs/r5rs-lib/r5rs/run.rkt: [running body]
+
+> '(define y 7)  ;;; here, the quote tells the interpreter to create a list of symbols and a number.
+(define y 7)
+> y     ;;; of course, y is still not defined.
+y: undefined;
+ cannot reference undefined identifier
+  context...:
+   /Applications/Racket v6.6/collects/racket/private/misc.rkt:88:7
+   /Applications/Racket v6.6/share/pkgs/r5rs-lib/r5rs/run.rkt: [running body]
+> (define y 7)     ;;; without the quote, it is a definition of y.
+> y
+7
+> ;; arithmetic expressions -- always prefix notation.
+(+ x y)
+13
+
+> ;;; defining functions:  (define (<name> <param1> <param2> ...) <body>)
+(define (f z y) (+ z (* 2 y)))
+> ;;; function call  (<fn> <arg1> <arg2> ...)
+(f 3 (+ x 5))
+25
+> ;;; conditionals:  IF  or  COND
+
+;; (if <condition> <then-part> <else-part>)
+(if (= x y) 'yes (* x y))
+42
+
+> ;;;; (cond (<condition1> <result1>)
+  ;;;;       (<condition2> <result2>)
+  ;;;        ...
+  ;;;;       (else <result>))
+
+(cond ((= x y) 'first)
+      ((< x y) 'second)    ;;; since x < y, the result should be the symbol second.
+      ((> x y) 'third)
+      (else 'fourth))
+second
+
+> ;;; Towers of Hanoi in Scheme
+
+(define (hanoi N from to temp)
+  (cond ((= N 1) (display "Move disk from ") (display from)
+                 (display " to ") (display to) (newline))
+        (else (hanoi (- N 1) from temp to)
+              (display "Move disk from ") (display from)
+              (display " to ") (display to) (newline)
+              (hanoi (- N 1) temp to from))))
+> (hanoi 1 'a 'b 'c)
+Move disk from a to b
+> (hanoi 4 'a 'b 'c)
+Move disk from a to c
+Move disk from a to b
+Move disk from c to b
+Move disk from a to c
+Move disk from b to a
+Move disk from b to c
+Move disk from a to c
+Move disk from a to b
+Move disk from c to b
+Move disk from c to a
+Move disk from b to a
+Move disk from c to b
+Move disk from a to c
+Move disk from a to b
+Move disk from c to b
+
+
+> ;;; LISTS
+;; creating lists:  ' or LIST or CONS or APPEND
+;; using '  (quote)
+'(1 2 3 4)
+(1 2 3 4)
+> '(1 (+ 2 3) (* x y))  ;; QUOTE: nothing inside the parens is evaluated
+(1 (+ 2 3) (* x y))
+> (list 1 (+ 2 3) (* x y))   ;;; LIST: args are evaluated and put in a list
+(1 5 42)
+
+> ;;; CONS:  (cons x L), where x is a value and L is a list, creates a 
+  ;;;  new list containing x followed by the elements of L.
+(cons 1 '(2 3 4 5))
+(1 2 3 4 5)
+> (define myList '(2 3 4 5))
+> (cons 1 myList)
+(1 2 3 4 5)
+> myList   ;;; CONS does NOT modify its parameters (functional language!)
+(2 3 4 5)
+
+> ;;; APPEND:  (append L1 L2) creates a new list containing all the elements 
+  ;;; of L1 and of L2
+
+(append '(1 2 3 4) '(5 6 7 8))
+(1 2 3 4 5 6 7 8)
+
+
+> (cons '(1 2 3 4) '(5 6 7 8))   ;;; CONS does something very different than APPEND
+((1 2 3 4) 5 6 7 8)
+
+
+> ;;; ACCESSING THE ELEMENTS OF A LIST:  CAR, CDR
+
+;;; (car L) returns the first element of the list L  (the "head" of the list)
+
+(car '(2 4 6 8))
+2
+> myList
+(2 3 4 5)
+> (car myList)  ;;; doesn't modify its parameters
+2
+> myList
+(2 3 4 5)
+
+> ;; (cdr L) returns a new list containing all the elements of L
+  ;;         EXCEPT the first element (the "rest" or "tail" of the list).
+(cdr '(2 4 6 8))
+(4 6 8)
+> (cdr myList)
+(3 4 5)
+> (car (cdr '(1 2 3 4)))  ;; second element
+2
+> (car (cdr (cdr '(1 2 3 4))))  ;; third element
+3
+> myList
+(2 3 4 5)
+> '()  ;; the empty list
+()
+> (cdr '(1))    ;;; the CDR of a list with one element is the empty list.
+()
+
+> ;;; testing for the empty list:  (null? L) returns #t if L is empty
+(null? myList)
+#f
+> (null? (cdr '(1)))
+#t
+
+> ;;; Writing our own function (nth n L) to return the n'th element of the list L.
+(define (nth n L)
+    (cond ((= n 1) (car L))   ;;; base case, n = 1, return the first element
+          (else (nth (- n 1) (cdr L)))))  ;; assumption is that Nth will work for n-1,
+	                                  ;; construct the result for n.  The nth
+					  ;; element of L is the (n-1)th element of (cdr L).
+> (nth 5 '(2 4 6 8 10 12))
+10
+
+
+> ;;; Append can be written in Scheme, it doesn't have to be built-in to Scheme.
+  ;;; Let's define our own!
+  ;;; Define (myappend L1 L2) where L1 and L2 are lists.
+  ;;;   Base case:  If L1 is empty, then the result is just L2.
+  ;;;   Assumption:  If L1 has N elements, assume myappend works when it's first
+  ;;;                argument has N-1 elements.  Note that (cdr L1) has N-1 elements.
+  ;;;   Step:  Since (myappend (cdr L1) L2) is assumed to work, it returns a list of
+  ;;;          all the desired elements, except the first element of L1. So, we
+  ;;;          CONS the first element of L1, (car L1), onto the list returned by
+  ;;;          (myappend (cdr L1) L2)
+
+(define (myappend L1 L2)  
+  (cond ((null? L1) L2)  ;;; base case:  L1 is empty, so the result is just L2
+        (else (cons (car L1) (myappend (cdr L1) L2)))))   
+
+> (myappend '(2 3 4 5) '(6 7 8 9))
+(2 3 4 5 6 7 8 9)
+
+
+> ;;; Another example of recursive thinking:  Writing a function to put an element at the
+  ;;; end of a list (like cons but at the end instead of the beginning).  That is,
+  ;;; (atEnd x L) should return a list containing all the elements of L followed by x.
+  ;;;   Base Case:  L is the empty list, so just return the list containing x, i.e. (list x)
+  ;;;   Assumption: Assume (atEnd x (cdr L)) works.
+  ;;;   Step: Since (atEnd x (cdr L)) is missing the first element of L, CONS the (car L)
+  ;;;         onto the result of (atEnd x (cdr L))
+
+(define (atEnd x L) 
+  (cond ((null? L) (list x))  
+        (else (cons (car L) (atEnd x (cdr L))))))
+
+> (atEnd 3 '(4 5 6 7 8))
+(4 5 6 7 8 3)
+
+> ;;; (REVERSE L) returns a list containing the elements of L, but in reverse order.
+(reverse '(1 2 3 4 5))
+(5 4 3 2 1)
+
+> ;;; REVERSE only reverses the top-level elements, it does not reverse any
+  ;;; nested lists
+(reverse '(1 2 (3 4) 5))
+(5 (3 4) 2 1)
+
+> ;;; Writing our own version of REVERSE
+
+(define (myReverse L)
+  (cond ((null? L) '())
+        (else (append (myReverse (cdr L)) (list (car L))))))
+> (myReverse '(1 2 3 4 5))
+(5 4 3 2 1)
+
+
+> ;;; Linear time myReverse
+
+(define (myRev from to)
+  (cond ((null? from) to)
+        (else (myRev (cdr from) (cons (car from) to)))))
+> (myRev '(1 2 3 4 5) '())
+(5 4 3 2 1)
+
+> ;;; You'd want to redefine (myreverse L) to call (myRev L '())
+(define (myReverse L)
+  (myRev L '()))
+
+> (myReverse '(1 2 3 4 5))
+(5 4 3 2 1)
+
+
+> ;;; LET: Allows the definition of new variables with a nested scope.
+  ;;;  (let ((<var1> <exp1>) (<var2> <exp2>) ... (<varN> <expN>)) <body>)
+  ;;;  evaluates <body> in an environment in which var1 has the value of exp2,
+  ;;;  var2 has the value of exp2, etc.
+  
+(let ((x 12) (y 3))
+  (+ x y))
+15
+
+> ;;; The scope of the variables introduced by a LET is only within the body of the
+  ;;; LET.
+
+x  ;;;; This refers to the global variable x defined at the beginning of this session to be 6,
+   ;;; not to the x defined within the above LET.
+6
+> 
