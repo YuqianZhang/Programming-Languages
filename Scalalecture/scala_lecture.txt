@@ -1,0 +1,144 @@
+~/Desktop (501\)% scala
+Welcome to Scala 2.12.0 (Java HotSpot(TM) 64-Bit Server VM, Java 1.8.0_101).
+Type in expressions for evaluation. Or try :help.
+
+scala> (x:Int) => x + 1    // This is a lambda expression
+res1: Int => Int = $$Lambda$1074/791499503@f2ce6b
+
+scala> ((x:Int, y:Int) => x + y)(3,4)   // Calling a function represented by a lambda expression
+res2: Int = 7
+
+scala> class A  // Simple class definition
+defined class A
+
+scala> class B extends A  // B is a subclass of A
+defined class B
+
+scala> def fa(g: A=>Int) = g(new A())     // fa expects a parameter of type A->Int
+fa: (g: A => Int)Int
+
+scala> def fb(g:B=>Int) = g(new B())      // fb expects a parameter of tye B->Int
+fb: (g: B => Int)Int
+
+scala> def p(x:A) = 6   // p is of type A->Int
+p: (x: A)Int
+
+scala> def q(x:B) = 6   // q is of type B->Int
+q: (x: B)Int
+
+scala> fa(p);  // passing an A->Int to a function expecting an A->Int
+res3: Int = 6
+
+scala> fa(q) // passing a B->Int to a function expecting an A->Int, won't work.
+<console>:14: error: type mismatch;
+ found   : B => Int
+ required: A => Int
+       fa(q) // passing a B->Int to a function expecting an A->Int
+          ^
+
+scala> fb(q) // passing a B->Int to a function expecting an B->Int
+res5: Int = 6
+
+scala> fb(p) // passing an A->Int to a function expecting a B->Int, works fine (contravariant subtyping)
+res6: Int = 6
+
+scala> def f(g: Int=>A) = g(5)   // f expects a parameter of type Int->A
+f: (g: Int => A)A
+
+scala> f((x:Int) => new B()) // passing an Int->B to a function expecting an Int->A, works fine (covariance)
+res7: A = B@3c3820bb
+
+scala> // Pattern-Matching in Scala, using a "match" construct.
+
+scala> def fac(x:Int): Int = x match {     // factorial
+     | case 0 => 1
+     | case n => n * fac(n-1)
+     | }
+fac: (x: Int)Int
+
+
+scala> class C[T]   // This is a generic class C, parameterized by a type parameter T
+defined class C
+
+scala> new C[Int]
+res1: C[Int] = C@76c548f
+
+scala> new C[String]
+res2: C[String] = C@2add4d24
+
+scala>  // As the default, there is no subtyping among instances of a generic.
+
+scala> def f(x:C[A]) = 3    // f expects a parameter of type C[A]
+f: (x: C[A])Int
+
+scala> f(new C[B])   // passing a C[B] to a function expecting a C[A], won't work
+<console>:15: error: type mismatch;
+ found   : C[B]
+ required: C[A]
+Note: B <: A, but class C is invariant in type T.
+You may wish to define T as +T instead. (SLS 4.5)
+       f(new C[B]) // passing a C[B] to a function expecting a C[A]
+         ^
+
+scala> // However, you can explicitly specify covariant or contravariant subtyping
+       // among instances of a generic.
+
+scala> // Can declare covariantly subtyped generic, using "+"
+
+scala> class C[+T]   // this is a covariantly subtyped generic class
+defined class C
+
+scala> val c: C[A] = new C[B]()   // using a C[B] object where a C[A] is expected (covariance)
+c: C[A] = C@623dcf2a
+
+scala> val d: C[B] = new C[A]()   // trying to use a C[A] object where a C[B] is expected (contravariance)
+<console>:14: error: type mismatch;
+ found   : C[A]
+ required: C[B]
+       val d: C[B] = new C[A]()
+                     ^
+
+scala> // The + seriously limits the types of methods you can write.  Essentially, in a
+       // covariantly subtyped generic, the type parameter can only appear as the return
+       // type to a method (not the input type).
+
+scala> class D[+T] {       
+     |   def f(x:T) = 0  // this won't work, since f takes a T as an input
+     | }
+<console>:12: error: covariant type T occurs in contravariant position in type T of value x
+         def f(x:T) = 0
+               ^
+
+scala> class D[+T](x:T) {
+     |   def f(y:Int): T = x  // this will work, since T is the return type.
+     | }
+defined class D
+
+scala> // Can declare contravariantly subtyped generic, using "-"
+
+scala> class E[-T]   // E[] is contravariantly subtyped
+defined class E
+
+scala> val c: E[A] = new E[B]()    // Using an E[B] where an E[A] is expected. Won't work (covariance).
+<console>:14: error: type mismatch;
+ found   : E[B]
+ required: E[A]
+       val c: E[A] = new E[B]()
+                     ^
+
+scala> val c: E[B] = new E[A]()  // Using an E[A] where an E[B] is expected. Works fine (contravariance)
+c: E[B] = E@2b6fcb9f
+
+scala> // The - is also seriously limiting. Essentially, in a contravariantly subtyped generic class, a method can have the type parameter as the input type, but not as the return type.
+
+scala> class E[-T](x:T) {  // contravariantly subtyped generic class
+     |   def f(y:Int): T = x   // won't work, can't have the type parameter T as a return type
+     | }
+<console>:12: error: contravariant type T occurs in covariant position in type (y: Int)T of method f
+         def f(y:Int): T = x
+             ^
+
+scala> class E[-T] {  
+     |   def f(x:T): Int = 3  // this method will work, can have type parameter T as the input type.
+     | }
+defined class E
